@@ -2,6 +2,7 @@ import Vue from 'vue'
 import App from './App.vue'
 import store from './store'
 import firebase from 'firebase/app'
+import vuetify from './plugins/vuetify';
 
 const firebaseConfig = {
   apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
@@ -19,5 +20,6 @@ Vue.config.productionTip = false
 
 new Vue({
   store,
+  vuetify,
   render: h => h(App)
 }).$mount('#app')
