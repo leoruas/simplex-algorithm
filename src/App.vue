@@ -1,6 +1,6 @@
 <template>
   <v-app style="background-color: #505259; overflow:hidden">
-    <input type="file" @change="loadTextFromFile">
+    <input type="file" @change="loadTextFromFile" />
     <v-row justify="center">
       <v-col cols="11" md="9">
         <v-card elevation="12">
@@ -120,14 +120,14 @@
                 </div>
               </div>
               <v-btn
-                  style="display: block"
-                  class="mb-3"
-                  text
-                  color="primary"
-                  @click="addRestriction()"
-                >
-                <v-icon left>mdi-plus</v-icon>
-                 Add Restrição</v-btn>
+                style="display: block"
+                class="mb-3"
+                text
+                color="primary"
+                @click="addRestriction()"
+              >
+                <v-icon left>mdi-plus</v-icon>Add Restrição
+              </v-btn>
             </v-tab-item>
           </v-tabs>
         </v-card>
@@ -155,27 +155,33 @@ export default {
     index: 0,
   }),
   methods: {
-    addCoef() { //funcao repsonsavel por adicionar um lugar para coeficiente
+    addCoef() {
+      //funcao repsonsavel por adicionar um lugar para coeficiente
       this.coefs.push(""); //adiciona "" no vetor de coeficientes
 
-      this.restrictions.forEach((rest) => { //adiciona um novo coeficiente em cada uma das restricoes ja existentes
+      this.restrictions.forEach((rest) => {
+        //adiciona um novo coeficiente em cada uma das restricoes ja existentes
         rest.coefs.push("");
       });
     },
-    addRestriction() { //funcao responsavel por adicionar restricoes
-      let obj = { //objeto auxiliar
+    addRestriction() {
+      //funcao responsavel por adicionar restricoes
+      let obj = {
+        //objeto auxiliar
         coefs: [],
         b: "",
       };
 
-      this.coefs.forEach(() => obj.coefs.push("")) //adiciona um coeficiente no objeto auxiliar para cada um ja existente no vetor coefs
+      this.coefs.forEach(() => obj.coefs.push("")); //adiciona um coeficiente no objeto auxiliar para cada um ja existente no vetor coefs
 
       this.restrictions.push(obj); //adiciona o objeto no vetor de restricoes
     },
-    removeCoef() { //funcao responsavel por remover o ultimo coeficiente
+    removeCoef() {
+      //funcao responsavel por remover o ultimo coeficiente
       this.coefs.pop(); //remove o ultimo coeficiente do vetor de coeficientes
 
-      this.restrictions.forEach((rest) => { //remove o ultimo coeficiente de cada uma das restricoes ja existentes
+      this.restrictions.forEach((rest) => {
+        //remove o ultimo coeficiente de cada uma das restricoes ja existentes
         rest.coefs.pop();
       });
     },
@@ -183,10 +189,9 @@ export default {
       console.log(index);
       this.restrictions.splice(index, 1);
     },
-    generateTable() {
-
-    },
-    reset() { //reseta coeficientes e restricoes
+    generateTable() {},
+    reset() {
+      //reseta coeficientes e restricoes
       this.coefs = ["", ""];
       this.restrictions = [{ coefs: ["", ""], b: "" }];
       this.index = 0;
@@ -196,35 +201,59 @@ export default {
       const reader = new FileReader();
 
       this.reset();
-      reader.onload = e => this.handleText(e.target.result);
-      console.log("here");
+      reader.onload = (e) => this.handleText(e.target.result);
+
       reader.readAsText(file);
     },
-    handleText(text) { //funcao responsavel por manejar o texto recebido
+    handleText(text) {
+      //funcao responsavel por manejar o texto recebido
       let lines = text.split("\n"); //vetor com o texto de cada uma das linhas
 
       lines.forEach((line, i) => {
         let array = line.replace(/(\r\n|\n|\r)/gm, "").split(" "); //vetor com cada um dos valores da linha em questao
         //o replace foi necessario para que nao houvessem problemas com quebras de linha ou outros tipos de caracteres de formatacao
 
-        if(i == this.restrictions.length + 1) this.addRestriction(); // adiciona uma nova restriçao quando necessario (-1 para desconsiderar a primeira linha que pertence aos coeficientes)
+        if (i == this.restrictions.length + 1) this.addRestriction(); // adiciona uma nova restriçao quando necessario (-1 para desconsiderar a primeira linha que pertence aos coeficientes)
 
-        if(i == 0) { //se for a primeira linha -> colocar em coeficientes
-          array.forEach((value, n) => { //para cada um dos valores colocar em vetor coefs
-            if(n == this.coefs.length) this.addCoef();
-            this.coefs[n] = value;
-          })
-        } else { //se nao -> colocar em restricoes
-          array.forEach((value, n) => { //para cada um dos valores 
-            if(n == array.length - 1)//o ultimo é sempre o valor de b
-              this.restrictions[i-1].b = value;
-            else {
-              this.restrictions[i-1].coefs[n] = value
+        let cont = 0; //contador de valores validos (nao espacos em branco)
+        if (i == 0) {
+          //se for a primeira linha -> colocar em coeficientes
+          array.forEach((value) => {
+            //para cada um dos valores colocar em vetor coefs
+            if (value.length) {
+              console.log(JSON.stringify(value), "length", value.length);
+              if (cont == this.coefs.length) {
+                this.addCoef();
+              }
+              this.coefs[cont++] = value;
             }
-          })
+          });
+        } else {
+          //se nao -> colocar em restricoes
+          let aux = 0;
+          cont = 0
+          array.forEach((value, n) => {
+            //para cada um dos valores
+            if (value.length) {
+              aux = n; //guarda a posicao do ultimo valor que nao era espaco numerico
+              if (n == array.length - 1)
+                //o ultimo é sempre o valor de b
+                this.restrictions[i - 1].b = value;
+              else {
+                this.restrictions[i - 1].coefs[cont] = value;
+              }
+
+              cont++;
+            }
+          });
+
+          if (!this.restrictions[i - 1].b.length) {
+            //caso tenham sido deixado espacos em branco no final o valor de b nao tera sido atribuido, é, portanto, necessario colocar o valor da ultima posicao de array que possuia um valor que nao fosse espaco em branco
+            this.restrictions[i - 1].b = array[aux];
+          }
         }
-      })
-    }
+      });
+    },
   },
   computed: {
     warning() {
@@ -254,25 +283,5 @@ export default {
   font-size: 22px;
   font-weight: 500;
   color: rgb(61, 61, 61);
-}
-.card {
-  max-height: 400px;
-  overflow: auto;
-}
-.card::-webkit-scrollbar {
-  width: 4px;
-}
-/* Track */
-.card::-webkit-scrollbar-track {
-  background: none;
-}
-/* Handle */
-.card::-webkit-scrollbar-thumb {
-  background: #f1ac4a;
-  border-radius: 5px;
-}
-/* Handle on hover */
-.card::-webkit-scrollbar-thumb:hover {
-  background: #fca326;
 }
 </style>
