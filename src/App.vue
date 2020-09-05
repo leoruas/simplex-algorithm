@@ -1,5 +1,6 @@
 <template>
   <v-app style="background-color: #505259; overflow:hidden">
+    <input type="file" @change="loadTextFromFile">
     <v-row justify="center">
       <v-col cols="11" md="9">
         <v-card elevation="12">
@@ -14,7 +15,7 @@
               <v-icon left>mdi-exclamation</v-icon>Restrições
             </v-tab>
 
-            <v-tab-item class="py-4" style="border-left: 1px solid grey">
+            <v-tab-item class="py-4" style="border-left: 1px solid grey;">
               <div class="ml-2">
                 <span class="font">Numero de variáveis:</span>
                 <v-tooltip bottom color>
@@ -83,12 +84,6 @@
             <v-tab-item class="py-4" style="border-left: 1px solid grey">
               <div class="ml-2 font">
                 Sujeito a:
-                <v-btn
-                  style="display: block"
-                  class="mb-3"
-                  text
-                  @click="addRestriction()"
-                >+ Add Restrição</v-btn>
                 <div class="font my-3" v-for="(rest, n) in restrictions" :key="n">
                   {{n + 1}}.)
                   <span v-for="i in coefs.length" :key="i">
@@ -124,6 +119,15 @@
                   </v-btn>
                 </div>
               </div>
+              <v-btn
+                  style="display: block"
+                  class="mb-3"
+                  text
+                  color="primary"
+                  @click="addRestriction()"
+                >
+                <v-icon left>mdi-plus</v-icon>
+                 Add Restrição</v-btn>
             </v-tab-item>
           </v-tabs>
         </v-card>
@@ -146,31 +150,32 @@ export default {
   name: "App",
 
   data: () => ({
-    nVars: 2,
     coefs: ["", ""],
     restrictions: [{ coefs: ["", ""], b: "" }],
     index: 0,
   }),
   methods: {
-    addCoef() {
-      this.coefs.push("");
-      this.restrictions.forEach((rest) => {
+    addCoef() { //funcao repsonsavel por adicionar um lugar para coeficiente
+      this.coefs.push(""); //adiciona "" no vetor de coeficientes
+
+      this.restrictions.forEach((rest) => { //adiciona um novo coeficiente em cada uma das restricoes ja existentes
         rest.coefs.push("");
       });
     },
-    addRestriction() {
-      let obj = {
+    addRestriction() { //funcao responsavel por adicionar restricoes
+      let obj = { //objeto auxiliar
         coefs: [],
         b: "",
       };
 
-      for (let i = 0; i < this.coefs.length; i++) obj.coefs.push("");
+      this.coefs.forEach(() => obj.coefs.push("")) //adiciona um coeficiente no objeto auxiliar para cada um ja existente no vetor coefs
 
-      this.restrictions.push(obj);
+      this.restrictions.push(obj); //adiciona o objeto no vetor de restricoes
     },
-    removeCoef() {
-      this.coefs.pop();
-      this.restrictions.forEach((rest) => {
+    removeCoef() { //funcao responsavel por remover o ultimo coeficiente
+      this.coefs.pop(); //remove o ultimo coeficiente do vetor de coeficientes
+
+      this.restrictions.forEach((rest) => { //remove o ultimo coeficiente de cada uma das restricoes ja existentes
         rest.coefs.pop();
       });
     },
@@ -178,6 +183,59 @@ export default {
       console.log(index);
       this.restrictions.splice(index, 1);
     },
+    generateTable() {
+
+    },
+    reset() { //reseta coeficientes e restricoes
+      this.coefs = ["", ""];
+      this.restrictions = [{ coefs: ["", ""], b: "" }];
+      this.index = 0;
+    },
+    loadTextFromFile(ev) {
+      const file = ev.target.files[0];
+      const reader = new FileReader();
+
+      this.reset();
+      reader.onload = e => this.handleText(e.target.result);
+      console.log("here");
+      reader.readAsText(file);
+    },
+    handleText(text) { //funcao responsavel por manejar o texto recebido
+      let lines = text.split("\n"); //vetor com o texto de cada uma das linhas
+
+      lines.forEach((line, i) => {
+        // console.log("line", line);
+        // let x = ;
+        // console.log("x", JSON.stringify(x));
+        // console.log("stringify", JSON.stringify(line));
+        // console.log("stringify after", JSON.stringify(line));
+        // console.log(i);
+        let array = line.replace(/(\r\n|\n|\r)/gm, "").split(" "); //vetor com cada um dos valores da linha em questao
+        //o replace foi necessario para que nao houvessem problemas com quebras de linha ou outros tipos de caracteres de formatacao
+
+        if(i == this.restrictions.length + 1) this.addRestriction(); // adiciona uma nova restriçao quando necessario (-1 para desconsiderar a primeira linha que pertence aos coeficientes)
+
+        if(i == 0) { //se for a primeira linha -> colocar em coeficientes
+          console.log("coefs")
+          array.forEach((value, n) => { //para cada um dos valores colocar em vetor coefs
+            if(n == this.coefs.length) this.addCoef();
+            console.log("value", value);
+            this.coefs[n] = value;
+          })
+        } else { //se nao -> colocar em restricoes
+          console.log("restricao")
+          array.forEach((value, n) => { //para cada um dos valores 
+            
+            console.log("value", value);
+            if(n == array.length - 1)//o ultimo é sempre o valor de b
+              this.restrictions[i-1].b = value;
+            else {
+              this.restrictions[i-1].coefs[n] = value
+            }
+          })
+        }
+      })
+    }
   },
   computed: {
     warning() {
@@ -199,6 +257,19 @@ export default {
       return false;
     },
   },
+  // watch: {
+  //   text() {
+  //     console.log("text", this.text);
+  //     this.lines = this.text.split("\n");
+  //   },
+  //   lines() {
+  //     console.log("lines", this.lines);
+  //     if(this.index == 0) {
+  //       this.index = 1;
+  //       this.lines = this.lines[1].split(" ");
+  //     }
+  //   }
+  // }
 };
 </script>
 
