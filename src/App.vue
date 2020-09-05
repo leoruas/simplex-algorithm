@@ -204,29 +204,18 @@ export default {
       let lines = text.split("\n"); //vetor com o texto de cada uma das linhas
 
       lines.forEach((line, i) => {
-        // console.log("line", line);
-        // let x = ;
-        // console.log("x", JSON.stringify(x));
-        // console.log("stringify", JSON.stringify(line));
-        // console.log("stringify after", JSON.stringify(line));
-        // console.log(i);
         let array = line.replace(/(\r\n|\n|\r)/gm, "").split(" "); //vetor com cada um dos valores da linha em questao
         //o replace foi necessario para que nao houvessem problemas com quebras de linha ou outros tipos de caracteres de formatacao
 
         if(i == this.restrictions.length + 1) this.addRestriction(); // adiciona uma nova restriçao quando necessario (-1 para desconsiderar a primeira linha que pertence aos coeficientes)
 
         if(i == 0) { //se for a primeira linha -> colocar em coeficientes
-          console.log("coefs")
           array.forEach((value, n) => { //para cada um dos valores colocar em vetor coefs
             if(n == this.coefs.length) this.addCoef();
-            console.log("value", value);
             this.coefs[n] = value;
           })
         } else { //se nao -> colocar em restricoes
-          console.log("restricao")
           array.forEach((value, n) => { //para cada um dos valores 
-            
-            console.log("value", value);
             if(n == array.length - 1)//o ultimo é sempre o valor de b
               this.restrictions[i-1].b = value;
             else {
@@ -257,19 +246,6 @@ export default {
       return false;
     },
   },
-  // watch: {
-  //   text() {
-  //     console.log("text", this.text);
-  //     this.lines = this.text.split("\n");
-  //   },
-  //   lines() {
-  //     console.log("lines", this.lines);
-  //     if(this.index == 0) {
-  //       this.index = 1;
-  //       this.lines = this.lines[1].split(" ");
-  //     }
-  //   }
-  // }
 };
 </script>
 
