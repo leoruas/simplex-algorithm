@@ -1,5 +1,6 @@
 <template>
   <v-app style="background-color: #505259; overflow: hidden">
+    
     <v-dialog v-model="dialog" max-width="60%">
       <v-card class="pa-3">
         <v-btn
@@ -49,7 +50,10 @@
               <div class="ml-2">
                 <div class="mb-4">
                   <span class="font">Upload de arquivo txt: </span>
-                  <input type="file" @change="loadTextFromFile" />
+                  <input :key="inputKey" type="file" @change="loadTextFromFile" />
+                  <v-btn @click="inputKey++" icon small>
+                    <v-icon>mdi-close</v-icon>
+                  </v-btn>
                 </div>
                 <span class="font">Numero de variáveis:</span>
                 <v-tooltip bottom color>
@@ -231,6 +235,7 @@ export default {
       z: null,
     },
     dialog: false, //variavel responsavel por mostrar/esconder dialogo com resposta
+    inputKey: 0
   }),
   methods: {
     reset() {
@@ -395,7 +400,7 @@ export default {
             //exclui a ultima linha -> linha de Z e ignora linhas com 0 (pra nao ocorrer divisao por 0)
             let div = linha[colunaB] / linha[pivo]; //guarda a divisao da coluna b pela coluna pivo
             if (menorDiv > div && div >= 0) {
-              //DUVIDA: Divisoes negativas nao sao consideradas?
+              //DUVIDA: Divisoes negativas nao sao consideradas?  
               menorDiv = div;
               linhaExit = i; //guarda indice da linha que sai
             } //guarda a menor divisao
@@ -432,9 +437,6 @@ export default {
       //funcao responsavel por verificar se solucao é otima de acordo com as colunas da ultima linha
       let linha = this.table.length - 1; //pega a ultima linha da tabela
       let x = this.table[linha].find((col) => col < 0); //procura por um valor negativo na linha
-      console.log("table", this.table);
-      console.log("at linha", linha);
-      console.log("col", x);
       if (x == undefined) return -1; //se nao encontrar nenhum valor retorna -1 -> indica que nao há numeros negativos na ultima linha (solucao otima)
 
       return this.table[linha].indexOf(x); //se foi encontrado um valor negativo retor a coluna dele sendo necessario ainda fazer operacoes na tabela
@@ -463,7 +465,6 @@ export default {
           }
         }
       }
-      console.log("resposta", this.resposta);
       this.dialog = true;
     },
     validaCol(col) {
