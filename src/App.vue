@@ -374,14 +374,12 @@ export default {
         }
         this.table.push(aux); //adiciona linha na tabela
       }
-      console.log("generated", this.table);
       this.handleTable();
     },
     handleTable() {
       let isOptimal = this.validaLinha() == -1 ? true : false; //inicializa verificando se ha algum valor negativo na ultima linha da tabela -> true se todos os valores na ultima linha forme maiores ou iguais a 0
 
       while (!isOptimal) {
-        console.log("table", this.table);
         //repete ate que todos os valores na linha de coeficientes da tabelas seja maiores ou iguais a 0
 
         //pegar o menor valor da linha dos coeficientes
