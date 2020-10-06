@@ -1,6 +1,5 @@
 <template>
   <v-app style="background-color: #505259; overflow: hidden">
-    
     <v-dialog v-model="dialog" max-width="60%">
       <v-card class="pa-3">
         <v-btn
@@ -50,7 +49,11 @@
               <div class="ml-2">
                 <div class="mb-4">
                   <span class="font">Upload de arquivo txt: </span>
-                  <input :key="inputKey" type="file" @change="loadTextFromFile" />
+                  <input
+                    :key="inputKey"
+                    type="file"
+                    @change="loadTextFromFile"
+                  />
                   <v-btn @click="inputKey++" icon small>
                     <v-icon>mdi-close</v-icon>
                   </v-btn>
@@ -235,7 +238,7 @@ export default {
       z: null,
     },
     dialog: false, //variavel responsavel por mostrar/esconder dialogo com resposta
-    inputKey: 0
+    inputKey: 0,
   }),
   methods: {
     reset() {
@@ -325,12 +328,12 @@ export default {
     removeCoef() {
       //funcao responsavel por remover o ultimo coeficiente
       let ok = true;
-      if(this.warning) {
+      if (this.warning) {
         ok = confirm(
           `Você tem certeza que deseja remover tudo relacionado à variável X${this.coefs.length}?`
         );
       }
-        
+
       if (ok) {
         //se usuario confirmar
         this.coefs.pop(); //remove o ultimo coeficiente do vetor de coeficientes
@@ -381,7 +384,7 @@ export default {
 
       while (!isOptimal) {
         //repete ate que todos os valores na linha de coeficientes da tabelas seja maiores ou iguais a 0
-
+        // debugger;
         //pegar o menor valor da linha dos coeficientes
         let linhaCoefs = this.table.length - 1;
         let menor = Math.min(...this.table[linhaCoefs]);
@@ -391,29 +394,33 @@ export default {
 
         //definir a linha que sai da base
         let colunaB = this.table[0].length - 1; //coluna b é a ultima
-        let linhaExit = 0; //inicializa a linha que sai em 0
-        let menorDiv = this.table[0][colunaB] / this.table[0][pivo]; //inicializa menorDiv com a primeira divisao
+        let divs = this.table.map((linha, i) => {
+          if (linha[pivo] !== 0 && i !== this.table.length - 1) {
+            //evita divisoes por zero e a ultima linha (coefs de z)
+            let div = linha[colunaB] / linha[pivo];
+            return Object.assign({}, { value: div, line: i }); //retorna objeto com valor e indice da linha
+          }
+        }); //vetor de divisoes da coluna b pela coluna pivo em cada linha
 
-        this.table.forEach((linha, i) => {
-          if (i < this.table.length - 1 && linha[pivo] !== 0) {
-            //exclui a ultima linha -> linha de Z e ignora linhas com 0 (pra nao ocorrer divisao por 0)
-            let div = linha[colunaB] / linha[pivo]; //guarda a divisao da coluna b pela coluna pivo
-            if (menorDiv > div && div >= 0) {
-              //DUVIDA: Divisoes negativas nao sao consideradas?  
-              menorDiv = div;
-              linhaExit = i; //guarda indice da linha que sai
-            } //guarda a menor divisao
+        let menorDiv = { value: null };
+        divs.forEach((div) => {
+          if (div !== undefined) {
+            if (div.value >= 0) {
+              if (menorDiv.value == null) {
+                //primeira divisao valida
+                menorDiv = Object.assign({}, div);
+              } else if (div.value < menorDiv.value)
+                menorDiv = Object.assign({}, div); //guarda se divisor for menor que o salvo ate o momento
+            }
           }
         });
+
+        let linhaExit = menorDiv.line; //guarda a linha do menor divisor
 
         //dividir linha pelo numero em linhaExit*pivo -> precisa ser = 1
         let divisor = this.table[linhaExit][pivo];
         this.table[linhaExit].forEach((col, j) => {
           this.table[linhaExit][j] /= divisor;
-          // if(this.table[linhaExit][j] % 1 !== 0) {
-          //   this.table[linhaExit][j] = this.table[linhaExit][j].toFixed(2)
-          // }
-          // this.table[linhaExit][j] = this.table[linhaExit][j] % 1 !== 0 ? this.table[linhaExit][j].toFixed(2) : this.table[linhaExit][j];
         });
 
         //zerar toda a coluna pivo exceto a linhaExit
@@ -434,11 +441,18 @@ export default {
     },
     validaLinha() {
       //funcao responsavel por verificar se solucao é otima de acordo com as colunas da ultima linha
-      let linha = this.table.length - 1; //pega a ultima linha da tabela
-      let x = this.table[linha].find((col) => col < 0); //procura por um valor negativo na linha
-      if (x == undefined) return -1; //se nao encontrar nenhum valor retorna -1 -> indica que nao há numeros negativos na ultima linha (solucao otima)
+      let linha = this.table.length - 1; //pega indice da ultima linha da tabela
+      let menor = Math.min(...this.table[linha]);
 
-      return this.table[linha].indexOf(x); //se foi encontrado um valor negativo retor a coluna dele sendo necessario ainda fazer operacoes na tabela
+      //definir coluna pivo
+      if (menor >= 0) return -1; ////se o menor valor encontrado nao for negativo retorna -1 -> indica que nao há numeros negativos na ultima linha (solucao otima)
+
+      return this.table[linha].indexOf(menor);
+
+      // let x = this.table[linha].find((col) => col < 0); //procura por um valor negativo na linha
+      // if (x == undefined) return -1;
+
+      // return this.table[linha].indexOf(x); //se foi encontrado um valor negativo retor a coluna dele sendo necessario ainda fazer operacoes na tabela
     },
     handleResposta() {
       this.resposta.x = []; //reiniciando o vetor de x em resposta
