@@ -248,6 +248,7 @@ export default {
       this.index = 0;
     },
     loadTextFromFile(ev) {
+      //funcao responsavel por receber o txt e mandar para a handleText -> trata o texto
       const file = ev.target.files[0];
       const reader = new FileReader();
 
@@ -257,7 +258,7 @@ export default {
       reader.readAsText(file);
     },
     handleText(text) {
-      //funcao responsavel por manejar o texto recebido
+      //funcao responsavel por tratar o texto recebido
       let lines = text.split("\n"); //vetor com o texto de cada uma das linhas
 
       lines.forEach((line, i) => {
@@ -327,8 +328,9 @@ export default {
     },
     removeCoef() {
       //funcao responsavel por remover o ultimo coeficiente
-      let ok = true;
+      let ok = true; 
       if (this.warning) {
+        //confirma com o usuario
         ok = confirm(
           `Você tem certeza que deseja remover tudo relacionado à variável X${this.coefs.length}?`
         );
@@ -345,7 +347,7 @@ export default {
       }
     },
     removeRestriction(index) {
-      this.restrictions.splice(index, 1);
+      this.restrictions.splice(index, 1); //remove restricao
     },
     generateTable() {
       let nFolgas = this.restrictions.length; //uma variavel de folga pra cada restricao
@@ -445,14 +447,9 @@ export default {
       let menor = Math.min(...this.table[linha]);
 
       //definir coluna pivo
-      if (menor >= 0) return -1; ////se o menor valor encontrado nao for negativo retorna -1 -> indica que nao há numeros negativos na ultima linha (solucao otima)
+      if (menor >= 0) return -1; //se o menor valor encontrado nao for negativo retorna -1 -> indica que nao há numeros negativos na ultima linha (solucao otima)
 
-      return this.table[linha].indexOf(menor);
-
-      // let x = this.table[linha].find((col) => col < 0); //procura por um valor negativo na linha
-      // if (x == undefined) return -1;
-
-      // return this.table[linha].indexOf(x); //se foi encontrado um valor negativo retor a coluna dele sendo necessario ainda fazer operacoes na tabela
+      return this.table[linha].indexOf(menor); //retorna indice da coluna com o menor valor da linha
     },
     handleResposta() {
       this.resposta.x = []; //reiniciando o vetor de x em resposta
@@ -478,27 +475,29 @@ export default {
           }
         }
       }
-      this.dialog = true;
+      this.dialog = true; //abre o dialogo com a resposta
     },
     validaCol(col) {
       let valid = true;
-      let nOnes = 0;
-      let linhaDeOne = null;
+      let nOnes = 0; //contador de numeros 1
+      let linhaDeOne = null; //indicador da linha que contem o numero 1
+
       this.table.forEach((linha, i) => {
-        if (linha[col] != 1 && linha[col] != 0) valid = false;
+        if (linha[col] != 1 && linha[col] != 0) valid = false; //marca como invalida a coluna se houver qualquer valor alem de 1 ou 0
         if (linha[col] == 1) {
-          nOnes++;
-          linhaDeOne = i;
+          nOnes++; //conta o numero um
+          linhaDeOne = i; //guarda indice da linha
         }
       });
 
-      if (valid == true && nOnes == 1) return linhaDeOne;
+      if (valid == true && nOnes == 1) return linhaDeOne; //se for valido e so houver um numero 1 retorna o indice da linha contendo o 1
 
-      return -1;
+      return -1; //se nao retorna -1 indicando que a coluna é invalida
     },
   },
   computed: {
     warning() {
+      //variavel pra aviso de remocao de coeficiente (front end)
       if (this.coefs[this.coefs.length - 1] !== "") return true;
 
       for (let i = 0; i < this.restrictions.length; i++)
