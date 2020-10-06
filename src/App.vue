@@ -1,22 +1,56 @@
 <template>
-  <v-app style="background-color: #505259; overflow:hidden">
-    <input type="file" @change="loadTextFromFile" />
+  <v-app style="background-color: #505259; overflow: hidden">
+    <v-dialog v-model="dialog" max-width="60%">
+      <v-card class="pa-3">
+        <v-btn
+          small
+          @click="dialog = false"
+          icon
+          style="position: absolute; right: 0"
+          class="mr-2"
+          color="red"
+          ><v-icon color="red">mdi-close</v-icon></v-btn
+        >
+        <div class="font">Tabela Final:</div>
+        <v-divider class="mb-3"></v-divider>
+        <table border="1" class="ml-2">
+          <tr>
+            <th v-for="i in restrictions.length + coefs.length + 1" :key="i">
+              {{ i != restrictions.length + coefs.length + 1 ? `X${i}` : "b" }}
+            </th>
+          </tr>
+          <tr v-for="(linha, i) in table" :key="i">
+            <td class="pa-1" v-for="(col, j) in linha" :key="j">
+              {{ col.toFixed(2) }}
+            </td>
+          </tr>
+        </table>
+        <div class="font mt-2">Resposta Final:</div>
+        <v-divider class="mb-2"></v-divider>
+        <div class="ml-2" v-for="resp in resposta.x" :key="resp">
+          {{ resp }}
+        </div>
+        <div class="ml-2">{{ resposta.z }}</div>
+      </v-card>
+    </v-dialog>
+
     <v-row justify="center">
       <v-col cols="11" md="9">
         <v-card elevation="12">
           <v-toolbar flat color="#29916d" dark>
             <v-toolbar-title>Algoritmo Simplex</v-toolbar-title>
+            <v-spacer></v-spacer>
           </v-toolbar>
           <v-tabs vertical color="#29916d" v-model="index">
-            <v-tab>
-              <v-icon left>mdi-exponent</v-icon>Equação z
-            </v-tab>
-            <v-tab>
-              <v-icon left>mdi-exclamation</v-icon>Restrições
-            </v-tab>
+            <v-tab> <v-icon left>mdi-exponent</v-icon>Equação z </v-tab>
+            <v-tab> <v-icon left>mdi-exclamation</v-icon>Restrições </v-tab>
 
-            <v-tab-item class="py-4" style="border-left: 1px solid grey;">
+            <v-tab-item class="py-4" style="border-left: 1px solid grey">
               <div class="ml-2">
+                <div class="mb-4">
+                  <span class="font">Upload de arquivo txt: </span>
+                  <input type="file" @change="loadTextFromFile" />
+                </div>
                 <span class="font">Numero de variáveis:</span>
                 <v-tooltip bottom color>
                   <template v-slot:activator="{ on, attrs }">
@@ -36,7 +70,7 @@
                   <span>Remover</span>
                 </v-tooltip>
 
-                <span class="mx-2">{{coefs.length}}</span>
+                <span class="mx-2">{{ coefs.length }}</span>
 
                 <v-tooltip bottom color>
                   <template v-slot:activator="{ on, attrs }">
@@ -55,11 +89,20 @@
                   <span>Adicionar</span>
                 </v-tooltip>
 
-                <v-tooltip bottom color="red" v-if="warning">
+                <v-tooltip
+                  bottom
+                  color="red"
+                  v-if="warning && coefs.length > 2"
+                >
                   <template v-slot:activator="{ on, attrs }">
-                    <v-icon color="red" v-bind="attrs" v-on="on" class="mx-1">mdi-alert-outline</v-icon>
+                    <v-icon color="red" v-bind="attrs" v-on="on" class="mx-1"
+                      >mdi-alert-outline</v-icon
+                    >
                   </template>
-                  <span>Remover uma variável agora ira apagar tudo realcionado ao x{{coefs.length}}</span>
+                  <span
+                    >Remover uma variável agora ira apagar tudo realcionado ao
+                    x{{ coefs.length }}</span
+                  >
                 </v-tooltip>
                 <v-divider class="mt-2"></v-divider>
 
@@ -67,15 +110,20 @@
                 <div class="font">
                   z =
                   <span v-for="(coef, i) in coefs" :key="i">
-                    {{i > 0 ? '+' : ''}}
+                    {{ i > 0 ? "+" : "" }}
                     <v-text-field
                       dense
                       v-model.number="coefs[i]"
                       type="number"
                       outlined
-                      style="width: 80px; display: inline-block; font-size:20px; text-align:right"
+                      style="
+                        width: 80px;
+                        display: inline-block;
+                        font-size: 20px;
+                        text-align: right;
+                      "
                     ></v-text-field>
-                    {{i > 0 ? ' x' : 'x'}}{{i + 1}}
+                    {{ i > 0 ? " x" : "x" }}{{ i + 1 }}
                   </span>
                 </div>
               </div>
@@ -84,18 +132,27 @@
             <v-tab-item class="py-4" style="border-left: 1px solid grey">
               <div class="ml-2 font">
                 Sujeito a:
-                <div class="font my-3" v-for="(rest, n) in restrictions" :key="n">
-                  {{n + 1}}.)
+                <div
+                  class="font my-3"
+                  v-for="(rest, n) in restrictions"
+                  :key="n"
+                >
+                  {{ n + 1 }}.)
                   <span v-for="i in coefs.length" :key="i">
-                    {{i > 1 ? '+' : ''}}
+                    {{ i > 1 ? "+" : "" }}
                     <v-text-field
                       dense
-                      v-model.number="rest.coefs[i-1]"
+                      v-model.number="rest.coefs[i - 1]"
                       type="number"
                       outlined
-                      style="width: 80px; display: inline-block; font-size:20px; text-align:right"
+                      style="
+                        width: 80px;
+                        display: inline-block;
+                        font-size: 20px;
+                        text-align: right;
+                      "
                     ></v-text-field>
-                    {{i > 1 ? ' x' : 'x'}}{{i}}
+                    {{ i > 1 ? " x" : "x" }}{{ i }}
                   </span>
 
                   <span>
@@ -105,7 +162,12 @@
                       v-model.number="rest.b"
                       type="number"
                       outlined
-                      style="width: 80px; display: inline-block; font-size:20px; text-align:right"
+                      style="
+                        width: 80px;
+                        display: inline-block;
+                        font-size: 20px;
+                        text-align: right;
+                      "
                     ></v-text-field>
                   </span>
 
@@ -113,7 +175,7 @@
                     icon
                     class="ml-2"
                     @click="removeRestriction(n)"
-                    :disabled=" restrictions.length == 1 ? true : false"
+                    :disabled="restrictions.length == 1 ? true : false"
                   >
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
@@ -168,6 +230,7 @@ export default {
       x: [], //vetor com os valores de Xi (onde i = indice) e valor maximo de Z
       z: null,
     },
+    dialog: false, //variavel responsavel por mostrar/esconder dialogo com resposta
   }),
   methods: {
     reset() {
@@ -256,12 +319,22 @@ export default {
     },
     removeCoef() {
       //funcao responsavel por remover o ultimo coeficiente
-      this.coefs.pop(); //remove o ultimo coeficiente do vetor de coeficientes
+      let ok = true;
+      if(this.warning) {
+        ok = confirm(
+          `Você tem certeza que deseja remover tudo relacionado à variável X${this.coefs.length}?`
+        );
+      }
+        
+      if (ok) {
+        //se usuario confirmar
+        this.coefs.pop(); //remove o ultimo coeficiente do vetor de coeficientes
 
-      this.restrictions.forEach((rest) => {
-        //remove o ultimo coeficiente de cada uma das restricoes ja existentes
-        rest.coefs.pop();
-      });
+        this.restrictions.forEach((rest) => {
+          //remove o ultimo coeficiente de cada uma das restricoes ja existentes
+          rest.coefs.pop();
+        });
+      }
     },
     removeRestriction(index) {
       this.restrictions.splice(index, 1);
@@ -274,7 +347,7 @@ export default {
         //numero de linhas vai ser igual ao numero de restricoes + 1 para a linha dos coefs da funcao
         let aux = [];
         for (let j = 0; j < nFolgas + this.coefs.length + 1; j++) {
-          //numero de colunas é igual ao numero de coeficientes somado com o numero de coeficientes +1 para os b's
+          //numero de colunas é igual ao numero de folgas somado com o numero de coeficientes +1 para os b's
           if (i == this.restrictions.length) {
             //esta na linha dos coeficientes
             if (j < this.coefs.length) aux.push(-this.coefs[j]);
@@ -302,6 +375,7 @@ export default {
       let isOptimal = this.validaLinha() == -1 ? true : false; //inicializa verificando se ha algum valor negativo na ultima linha da tabela -> true se todos os valores na ultima linha forme maiores ou iguais a 0
 
       while (!isOptimal) {
+        // debugger
         //repete ate que todos os valores na linha de coeficientes da tabelas seja maiores ou iguais a 0
 
         //pegar o menor valor da linha dos coeficientes
@@ -320,7 +394,8 @@ export default {
           if (i < this.table.length - 1 && linha[pivo] !== 0) {
             //exclui a ultima linha -> linha de Z e ignora linhas com 0 (pra nao ocorrer divisao por 0)
             let div = linha[colunaB] / linha[pivo]; //guarda a divisao da coluna b pela coluna pivo
-            if (menorDiv > div) {
+            if (menorDiv > div && div >= 0) {
+              //DUVIDA: Divisoes negativas nao sao consideradas?
               menorDiv = div;
               linhaExit = i; //guarda indice da linha que sai
             } //guarda a menor divisao
@@ -331,9 +406,13 @@ export default {
         let divisor = this.table[linhaExit][pivo];
         this.table[linhaExit].forEach((col, j) => {
           this.table[linhaExit][j] /= divisor;
+          // if(this.table[linhaExit][j] % 1 !== 0) {
+          //   this.table[linhaExit][j] = this.table[linhaExit][j].toFixed(2)
+          // }
+          // this.table[linhaExit][j] = this.table[linhaExit][j] % 1 !== 0 ? this.table[linhaExit][j].toFixed(2) : this.table[linhaExit][j];
         });
 
-        //zerar atoda a coluna pivo exceto a linhaExit
+        //zerar toda a coluna pivo exceto a linhaExit
         let divisao = null;
         this.table.forEach((linha, i) => {
           if (i != linhaExit) {
@@ -353,7 +432,9 @@ export default {
       //funcao responsavel por verificar se solucao é otima de acordo com as colunas da ultima linha
       let linha = this.table.length - 1; //pega a ultima linha da tabela
       let x = this.table[linha].find((col) => col < 0); //procura por um valor negativo na linha
-
+      console.log("table", this.table);
+      console.log("at linha", linha);
+      console.log("col", x);
       if (x == undefined) return -1; //se nao encontrar nenhum valor retorna -1 -> indica que nao há numeros negativos na ultima linha (solucao otima)
 
       return this.table[linha].indexOf(x); //se foi encontrado um valor negativo retor a coluna dele sendo necessario ainda fazer operacoes na tabela
@@ -371,13 +452,19 @@ export default {
               //se nao for -1 é porque essa variavel tem um resultado
               found = true;
               let value = this.table[linhaResp][colunaB]; //valor é igual ao valor da ultima coluna (coluna b) da tabela
-              this.resposta.x.push(`X${j + 1} = ${value}`);
+              this.resposta.x.push(
+                `X${j + 1} = ${parseFloat(value).toFixed(2)}`
+              );
             }
           } else if (i + 1 == this.table.length - 1) {
-            this.resposta.z = `Z = ${this.table[i + 1][j]}`;
+            this.resposta.z = `Z = ${parseFloat(this.table[i + 1][j]).toFixed(
+              2
+            )}`;
           }
         }
       }
+      console.log("resposta", this.resposta);
+      this.dialog = true;
     },
     validaCol(col) {
       let valid = true;
