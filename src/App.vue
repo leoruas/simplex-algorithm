@@ -364,7 +364,7 @@ export default {
               aux.push(this.restrictions[i].coefs[j]);
             } else if (j < nFolgas + this.coefs.length) {
               //enquanto nas variveis de folga
-              if (j - 2 == i) aux.push(1);
+              if (j - this.coefs.length == i) aux.push(1);
               //se a linha for a mesma da coluna da variavel de folga adiciona 1
               else aux.push(0); //se nao adiciona 0
             } else {
@@ -374,13 +374,14 @@ export default {
         }
         this.table.push(aux); //adiciona linha na tabela
       }
+      console.log("generated", this.table);
       this.handleTable();
     },
     handleTable() {
       let isOptimal = this.validaLinha() == -1 ? true : false; //inicializa verificando se ha algum valor negativo na ultima linha da tabela -> true se todos os valores na ultima linha forme maiores ou iguais a 0
 
       while (!isOptimal) {
-        // debugger
+        console.log("table", this.table);
         //repete ate que todos os valores na linha de coeficientes da tabelas seja maiores ou iguais a 0
 
         //pegar o menor valor da linha dos coeficientes
